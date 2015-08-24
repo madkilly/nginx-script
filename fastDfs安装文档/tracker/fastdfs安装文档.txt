@@ -1,0 +1,137 @@
+一：安装tracker
+
+
+    1. 拷贝安装目录下各个.gz文件到/usr/local/src下，解压各个install lib，例如tar zxvf xxx.tar.gz
+
+    2. 先安装libfastcommon，（需要先安装 yum install gcc,gcc-c++,perl）
+
+	cd libfastcommon
+	./make.sh
+	./make.sh install
+
+    3. 安装FastDFS
+
+	cd FastDFS
+	./make.sh
+	./make.sh install
+
+    4. 修改tracker.conf和client.conf
+	cd /etc/fdfs
+	cp client.conf.sample client.conf
+	cp tracker.conf.sample tracker.conf
+
+	//创建目录
+	mkdir -p /opt/fdfs/tracker
+
+	vi tracker.conf
+	修改项：
+	base_path=/opt/fdfs/tracker
+
+	vi client.conf
+	修改项：
+	base_path=/opt/fdfs/tracker
+	tracker_server=tracker的ip:22122
+
+    5. 拷贝命令到指定目录
+	cp /usr/bin/fdfs_trackerd /usr/local/bin
+	cp /usr/bin/fdfs_monitor /usr/local/bin
+	cp /usr/bin/fdfs_upload_file /usr/local/bin
+
+    6. 连接目录
+
+	ln -s /usr/include/fastcommon /usr/local/include/fastcommon 
+	ln -s /usr/include/fastdfs /usr/local/include/fastdfs 
+
+	ln -s /usr/lib64/libfastcommon.so /usr/local/lib/libfastcommon.so
+	ln -s /usr/lib64/libfdfsclient.so /usr/local/lib/libfdfsclient.so
+
+    6：启动tracker
+	fdfs_trackerd /etc/fdfs/tracker.conf start
+
+    7：查看启动状态
+
+	//查看tracker是否安装启动成功
+	ps aux | grep fdfs
+
+
+
+    8：对应的storage启动完成后，可以查看链接状态
+
+        fdfs_monitor /etc/fdfs/client.conf
+
+
+	
+二：tracker上安装nginx
+
+
+    1：确保依赖安装
+	yum install –y openssl-devel pcre-devel zlib-devel
+
+    2：解压/usr/local/src下的相关压缩包
+
+    3：编译和安装nginx
+
+	创建用户和响应的目录和文件，请参考nginx的安装文档
+
+	cd /usr/local/src/nginx-1.8.0
+
+	./configure \
+	--prefix=/usr \
+	--sbin-path=/usr/sbin/nginx \
+	--conf-path=/etc/nginx/nginx.conf \
+	--error-log-path=/media/disk1/nginx/logs/error.log \
+	--pid-path=/var/run/nginx/nginx.pid \
+	--lock-path=/var/lock/nginx.lock \
+	--user=nginx \
+	--group=nginx \
+	--with-pcre=/usr/local/src/pcre-8.35 \
+	--with-http_ssl_module \
+	--with-http_flv_module \
+	--with-http_gzip_static_module \
+	--http-log-path=/media/disk1/nginx/logs/access.log \
+	--http-client-body-temp-path=/media/disk1/nginx/client \
+	--http-proxy-temp-path=/media/disk1/nginx/proxy \
+	--http-fastcgi-temp-path=/media/disk1/nginx/fcgi \
+	--with-http_stub_status_module \
+	--with-poll_module \
+	--with-http_realip_module \
+	--add-module=/usr/local/src/ngx_cache_purge-2.3 \
+	--with-cc-opt=-Wno-error 、
+
+    4：设置启动文件和nginx配置文件
+
+	请参考安装目录下的tracker下的nginx和nginx.conf
+
+	修改对应的ip后分别拷贝到/etc/init.d/、/etc/nginx/
+
+    5: 启动nginx
+
+        service nginx start
+
+    6: 查看启动进程
+
+        ps aux | grep nginx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
