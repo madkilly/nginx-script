@@ -1,0 +1,72 @@
+通过lvs和keepalived结合的方式实现系统高可用性、系统可扩展性、负载均衡能力。
+其中lvs负责提供负载均衡和扩展功能，keepalived提供故障转移功能实现高可用性。
+
+一：安装LVS
+LVS模块是linux内核的默认模块，安装LVS要做的就是安装ipvsadm管理工具对LVS进行管理配置，本说明采用DR模式和RR算法进行配置
+1.下载安装ipvsadm
+
+yum instal ipvsadm
+
+2.LVS的配置
+ipvsadm安装后就要对LVS进行配置
+文件夹内lvsmaster和lvsrealserver文件是相应的LVS配置脚本，该脚本采用的是直接路由模式（DR），集群的IP设置如下
+LVS-DR-Master          20.12.6.46
+LVS-DR-BACKUP          20.12.6.53
+LVS-DR-VIP             20.12.6.205(VIP)        
+WEB1-Realserver        20.12.6.49(RIP)
+WEB2-Realserver        20.12.6.52(RIP)
+
+该设置可以根据具体情况在脚本内进行更改
+
+2.1.MASTER机的LVS配置
+
+更改lvsmaster中VIP、RIP的值为需要的值，然后将lvsmaster脚本拷贝到/etc/init.d目录下  
+#如果想启动LVS Server执行:/etc/init.d/lvsmaster.sh start  
+#如果想停止LVS Server执行:/etc/init.d/lvsmaster.sh stop  
+
+2.2.BACKUP机的LVS配置
+更改lvsmaster中VIP、RIP的值为需要的值，然后将lvsmaster脚本拷贝到/etc/init.d目录下  
+#如果想启动LVS Server执行:/etc/init.d/lvsmaster.sh start  
+#如果想停止LVS Server执行:/etc/init.d/lvsmaster.sh stop  
+
+2.3.REAL SERVER机的LVS配置
+
+更改lvsmaster中VIP的值为需要的值，然后将lvsmaster脚本拷贝到/etc/init.d目录下  
+#如果想启动LVS Server执行:/etc/init.d/lvsrealserver.sh start  
+#如果想停止LVS Server执行:/etc/init.d/lvsrealserver.sh stop  
+
+LVS 配置安装完毕。
+
+一：安装KEEPALIVED
+
+KEEPALIVED需要安装在MASTER和BACKUP机上，步骤如下
+
+//安装依赖库
+yum -y install gcc kernel-devel openssl-devel
+ 
+yum -y install popt-devel
+ 
+//解压keepalived
+cp keepalived-1.1.19.tar.gz /usr/local
+ 
+cd /usr/local
+ 
+tar -zxvf keepalived-1.1.19.tar.gz
+ 
+cd keepalived-1.1.19
+
+./configure --sysconf=/etc --with-kernel-dir=/usr/src/kernels/2.6.32-504.12.2.el6.x86_64/
+
+make && make install
+
+ln -s /usr/local/sbin/keepalived /sbin/
+
+MASTER机
+
+安装完成后将位于/etc/keepalived目录下的keepalived.conf文件替换为说明目录下的/keepalived/keepalived master.conf,并将其改名为keepalived.conf.
+配置文件中含有虚ip地址、realserver地址，将其修改为需要的地址运行后keepalived start 启动keepalived。
+
+backup机  
+
+安装完成后将位于/etc/keepalived目录下的keepalived.conf文件替换为说明目录下的/keepalived/keepalived bakup.conf,并将其改名为keepalived.conf.
+配置文件中含有虚ip地址、realserver地址，将其修改为需要的地址运行后keepalived start 启动keepalived。
